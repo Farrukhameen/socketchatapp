@@ -1,1 +1,3 @@
-simple chat app using nodejs and socket.io
+simple real type chat app
+
+Technologies used: nodejs,express,socket.io
