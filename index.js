@@ -30,12 +30,12 @@ io.on('connection', function (socket) {
     });
 
 	//private message to connected client
-  	for (var key in usernames) {
+/*  	for (var key in usernames) {
 		socket.to(usernames[key].id).emit('welcome', {
 	 	 	username: socket.username,
 	  		numUsers: numUsers
 		});
-	}
+	}*/
 
   });
 
@@ -68,6 +68,27 @@ io.on('connection', function (socket) {
       numUsers: numUsers
     });
   });
+
+  //private msg handling
+  socket.on('send private',function(data){
+    socket.to(usernames[data.target].id).emit('receive private',data);
+  });
+
+  //create private room on request
+  socket.on('create private',function(data){
+    console.log(data.room);
+    var roomname = data.room[0]+data.room[1];
+    socket.join(roomname);
+    socket.to(roomname).emit('welcome',{
+      username: roomname,
+      numUsers: numUsers
+    });
+/*    socket.join(data.targetuser+data.currentuser);
+    socket.to(data.targetuser+data.currentuser).emit('welcome',{
+      username: data.targetuser+data.currentuser,
+      numUsers: numUsers
+    });
+*/  });
 
   // when the client emits 'typing', we broadcast it to others
   socket.on('typing', function () {

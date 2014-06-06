@@ -8,12 +8,25 @@
       form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
       form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
       form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #chat-panel ul li:nth-child(odd) { background: #fff; }
+      #chat-panel ul li{
+height: 25px;
+border: 1px solid rgb(230, 227, 227);
+padding: 3px;
+text-align: left;
+}
+      #chat-panel ul{
+overflow: auto;
+float: left;
+height: 220px;
+width: 245px;
+      }
       #chat-panel input{
 width: 100%;
 height: 26px;
 border: 1px solid rgb(42, 42, 219);
 bottom: 0;
-position: absolute;
+float: left;
 }
       #chat-panel{
 position: absolute;
@@ -105,8 +118,11 @@ right: 1px;
   </div>
     <ul id="messages"></ul>
     <ul id="connections">
-      <h4>Current Online<h4>
+      <h4>Current Online</h4>
     </ul>
+    <br>
+    <br>
+    <br><br>
     <div id="type-status"></div>
     <form action="">
       <input id="m" autocomplete="off" placeholder="Your message!" /><button>Send</button>
@@ -116,11 +132,12 @@ right: 1px;
 <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
   var socket = io();
+  var currentuser ;
 
   $('form').submit(function(){
     var nick = $('#nick').val();
     var msg = $('#m').val();
-    $('#messages').append(
+    $('#messages').prepend(
     $('<li>').append(
         $('<strong/>',{text:nick})
             )
@@ -140,22 +157,28 @@ right: 1px;
 
 //text message recieved
   socket.on('new message', function(data){
-    var content = '<li> <strong>' + data.nick + '</strong> : ' + data.msg + '</li>';
-    $('#messages').append(content);
+    $('#messages').prepend(
+      $('<li>').append(
+          $('<strong/>',{text:data.nick})
+              )
+      .append(
+              $('<span/>', {text: " : " + data.msg})
+        )
+    );
   });
 //new member added
   socket.on('new',function(msg){
-    $('#messages').append($('<li>').text(msg));
+    $('#messages').prepend($('<li>').text(msg));
   });
 //member signout
   socket.on('gone',function(msg){
-    $('#messages').append($('<li>').text(msg));
+    $('#messages').prepend($('<li>').text(msg));
   });
 
   //User logout message
   socket.on('user left',function(data){
     $('#messages').append(
-      $('<li>').append(
+      $('<li>').prepend(
           $('<strong/>',{text:data.username})
               )
       .append(
@@ -167,7 +190,7 @@ right: 1px;
 
   //other users typing status
   socket.on('typing',function(data){
-    $('#messages').append(
+    $('#messages').prepend(
     $('<li>',{'class': 'typing' }).append(
         $('<strong/>',{text:data.username})
             )
@@ -182,7 +205,7 @@ right: 1px;
     $('.typing').remove();
   });
   socket.on('user joined',function(data){
-    $('#messages').append(
+    $('#messages').prepend(
     $('<li>').append(
         $('<strong/>',{text:data.username})
             )
@@ -209,25 +232,78 @@ right: 1px;
     }
   });
 
+  //receive private message
+  socket.on('receive private',function(data){
+    if($('#chat-panel .'+data.sender).length){
+		$('#chat-panel .'+data.sender+' ul').prepend(
+		    $('<li>').append(
+		        $('<strong/>',{text:data.sender+" : "})
+		            )
+		    .append(
+		            $('<span/>', {text: data.message})
+		    )
+		  );
+    } else {
+      $('#chat-panel').append("<div class = 'chat "+data.sender+"'><h3>"+data.sender+"</h3><ul></ul><div class='cross'></div><input class='"+data.sender+"' type='text' /></div>");
+	$('#chat-panel .'+data.sender+' ul').prepend(
+	    $('<li>').append(
+	        $('<strong/>',{text:data.sender+" : "})
+	            )
+	    .append(
+	            $('<span/>', {text: data.message})
+	    )
+	  );
+    }
+  });
+
   //get nick name and register whith server
 $(document).ready(function(){
+	//get private chat message
+	$('#chat-panel').on('keypress','input',function(e){
+		if(e.keyCode == 13){      //enter
+			var msg = $(this).val();
+			$(this).val('');
+			$(this).siblings('ul').prepend(
+			    $('<li>').append(
+			        $('<strong/>',{text:'me : '})
+			            )
+			    .append(
+			            $('<span/>', {text: msg})
+			    )
+			  );
+			var target = $(this).attr('class');
+			socket.emit('send private',{
+				target : target,
+				sender : currentuser,
+				message : msg
+			});
+		} 
+	});
+
+	//exit private chat
   $('#chat-panel').on('click','.cross',function(e){
     $(this).parent().remove();
   });
+
+  //start private chat
   $('#connections').on('click','li',function(e){
     var targetuser = $(this).attr('class');
     if($('#chat-panel .'+targetuser).length){
       $('.'+targetuser+' input').focus();
     } else {
-      $('#chat-panel').append("<div class = 'chat "+targetuser+"'><h3>"+targetuser+"</h3><div class='cross'></div><input class='"+targetuser+"' type='text' /></div>");
+      $('#chat-panel').append("<div class = 'chat "+targetuser+"'><h3>"+targetuser+"</h3><ul></ul><div class='cross'></div><input class='"+targetuser+"' type='text' /></div>");
       $('.'+targetuser+' input').focus();
+      var data = [ targetuser , currentuser ];
+      data.sort();
+      socket.emit('create private',{room: data});
     }
   });
 
   socket.emit('get users');
   $('#nick').keyup(function(e){
-    if (e.keyCode == 13) {
+    if (e.keyCode == 13) { //enter
       var username = $('#nick').val();
+      currentuser = username;
       socket.emit('add user',username);
       $('#login').hide();
       $('#m').focus();
