@@ -1,1 +1,2 @@
-web: node index.js;vendor/bin/heroku-php-apache2
+web: node index.js
+apache: vendor/bin/heroku-php-apache2
