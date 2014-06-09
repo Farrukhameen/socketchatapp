@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Socket.IO chat</title>
+    <title>PureChat</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font: 13px Helvetica, Arial; }
@@ -118,7 +118,7 @@ right: 1px;
   </div>
     <ul id="messages"></ul>
     <ul id="connections">
-      <h4>Current Online</h4>
+      <h4><?php echo "Members Online"; ?></h4>
     </ul>
     <br>
     <br>

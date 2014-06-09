@@ -9,7 +9,7 @@ server.listen(port, function () {
 
 // Routing
 app.get('/', function(req, res){
-  res.sendfile('./public/index.html');
+  res.sendfile('./public/index.php');
 });
 
 // Chatroom
