@@ -1,0 +1,8 @@
+{
+  "require": {
+    "php": "5.5.12"
+  }
+  "scripts": {
+    "test": "vendor/bin/heroku-php-apache2"
+  },
+}
