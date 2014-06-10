@@ -9,7 +9,7 @@ server.listen(port, function () {
 
 // Routing
 app.get('/', function(req, res){
-  res.sendfile('./public/index.php');
+  res.sendfile('./public/index.html');
 });
 
 // Chatroom
@@ -17,26 +17,36 @@ app.get('/', function(req, res){
 // usernames which are currently connected to the chat
 var usernames = {};
 var numUsers = 0;
+var games = {};
 
 io.on('connection', function (socket) {
+ var  checkwinner = function(x,y,name){
+  if(games[name].playground[0][y] == games[name].playground[1][y] && games[name].playground[1][y] == games[name].playground[2][y]){
+    return 'win';
+  }
+  else if(games[name].playground[x][0] == games[name].playground[x][1] && games[name].playground[x][1] == games[name].playground[x][2]){
+    return 'win';
+  }
+  if(x == y){  
+    if(games[name].playground[0][0] == games[name].playground[1][1] && games[name].playground[1][1] == games[name].playground[2][2]){
+      return 'win';
+    }
+  }
+  if(x+y == 2){
+    if(games[name].playground[0][2] == games[name].playground[1][1] && games[name].playground[1][1] == games[name].playground[2][0]){
+      return 'win';
+    }
+  }
+  return 'continue';
+ }
   var addedUser = false;
 
   // when the client emits 'new message', this listens and executes
   socket.on('new message', function (data) {
-    // we tell the client to execute 'new message'
     socket.broadcast.emit('new message', {
       nick: socket.username,
       msg: data
     });
-
-	//private message to connected client
-/*  	for (var key in usernames) {
-		socket.to(usernames[key].id).emit('welcome', {
-	 	 	username: socket.username,
-	  		numUsers: numUsers
-		});
-	}*/
-
   });
 
   // when the client emits 'add user', this listens and executes
@@ -46,7 +56,6 @@ io.on('connection', function (socket) {
     	id : socket.id
     }
     usernames[username] = info;
-  	//socket.join(username);
     // we store the username in the socket session for this client
     socket.username = username;
     var socketid = usernames[username].id;
@@ -57,11 +66,13 @@ io.on('connection', function (socket) {
     socket.emit('login', {
       numUsers: numUsers
     });
+
     // echo globally (all clients) that a person has connected
     socket.broadcast.emit('user joined', {
       username: socket.username,
       numUsers: numUsers
     });
+
     //add user to connection list
     socket.broadcast.emit('new connection', {
       username: socket.username,
@@ -76,19 +87,13 @@ io.on('connection', function (socket) {
 
   //create private room on request
   socket.on('create private',function(data){
-    console.log(data.room);
     var roomname = data.room[0]+data.room[1];
     socket.join(roomname);
     socket.to(roomname).emit('welcome',{
       username: roomname,
       numUsers: numUsers
     });
-/*    socket.join(data.targetuser+data.currentuser);
-    socket.to(data.targetuser+data.currentuser).emit('welcome',{
-      username: data.targetuser+data.currentuser,
-      numUsers: numUsers
-    });
-*/  });
+  });
 
   // when the client emits 'typing', we broadcast it to others
   socket.on('typing', function () {
@@ -119,9 +124,52 @@ io.on('connection', function (socket) {
     }
   });
 
+  //game invite
+  socket.on('game invite',function(data){
+    socket.to(usernames[data.challenged].id).emit('send invite',data);
+  });
+
   //get online users list for new connection
   socket.on('get users',function(){
   	socket.emit('get users',usernames);
   });
 
+  //challenge declined
+  socket.on('challenge declined',function(data){
+    socket.broadcast.emit('new message',{
+      nick : data.challenger,
+      msg : 'challenged '+data.challenged+' but he chickened out'
+    });
+    socket.to(usernames[data.challenger].id).emit('challenge declinde',data);
+  });
+
+  //challenge accepted
+  socket.on('challenge accepted',function(data){
+    socket.broadcast.emit('new message',{
+      nick : data.challenger,
+      msg : 'challenged '+data.challenged+' and he accepted it'
+    });
+    socket.to(usernames[data.challenger].id).emit('challenge accepted',data);
+    var info = {
+      status : 0,
+      playground : [['','',''],['','',''],['','','']]
+    }
+    games[data.challenger+data.challenged] = info;
+  });
+
+  //game move
+  socket.on('game move',function(data){
+    games[data.name].status += 1;
+    var x = data.move[0];
+    var y = data.move[1];
+    games[data.name].playground[x][y]=data.value;
+    socket.to(usernames[data.target].id).emit('game move',data);
+    var check = checkwinner(x,y,data.name);
+    if(check == 'win'){
+      socket.emit('game win',{
+        winner : data.current,
+      });
+      socket.to(usernames[data.target].id).emit('game lost');
+    }
+  });
 });

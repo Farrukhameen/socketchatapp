@@ -1,13 +1,72 @@
 <!doctype html>
 <html>
   <head>
-    <title>PureChat</title>
+    <title>Web chat</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font: 13px Helvetica, Arial; }
       form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
       form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
       form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #playground{margin-top: 10px;}
+      .message{}
+      #invite-response button{
+width: 225px;
+padding: 5px;
+font-size: 19px;
+}
+      #invite-response{
+      	display: none;
+position: absolute;
+bottom: 45px;
+right: 45px;
+}
+      #status{position: relative;}
+      #exit{
+background: black;
+width: 15px;
+height: 15px;
+position: absolute;
+top: 0px;
+right: 0px;
+}
+      #response{
+width: 300px;
+height: 40px;
+}
+      #status input[type="button"]{
+width: 100px;
+padding: 5px;
+font-size: 21px;
+}
+      #status select{
+width: 150px;
+margin-bottom: 10px;
+margin-right: 5px;
+height: 30px;
+}
+      #playground table{width: 300px; height: 300px;border: 1px solid gray;}
+      td{width: 50px; height: 50px;border: 1px solid rgb(238, 236, 236);}
+      #game-panel{
+display: none;
+margin-left: 30%;
+background: whitesmoke;
+width: 320px;
+height: 405px;
+padding: 10px;
+position: absolute;
+top: 10%;
+}
+      #play-game{
+position: absolute;
+bottom: 44px;
+}
+	  #play-game input{
+width: 200px;
+padding: 7px;
+background: blue;
+font-size: 20px;
+}
       #chat-panel ul li:nth-child(odd) { background: #fff; }
       #chat-panel ul li{
 height: 25px;
@@ -110,15 +169,77 @@ height: 15px;
 top: 1px;
 right: 1px;
 }
+.game-circle{
+width: 100%;
+height: 100%;
+border: 3px solid green;
+border-radius: 137px;
+}
+.game-cross {
+   width: 95%;
+   height: 100%;
+   position: relative;
+  transform:rotate(45deg);
+-ms-transform:rotate(45deg); /* IE 9 */
+-webkit-transform:rotate(45deg); /* Safari and Chrome */
+}
+
+.game-cross:before, .game-cross:after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  background: #000;
+}
+
+.game-cross:before {
+left: 50%;
+width: 4%;
+margin-left: -3%;
+height: 100%;
+}
+
+.game-cross:after {
+top: 50%;
+height: 4%;
+margin-top: -2%;
+width: 100%;
+}
     </style>
   </head>
   <body>
+  <div id="game-panel">
+    		<div id="exit"></div>
+    		<div id="status">
+    			<select id="invite"></select>
+    			<input type="button" value="Invite">
+    		</div>
+    		<div id="playground">
+    			<table>
+    				<tr>
+    					<td id="00"></td>
+    					<td id="01"></td>
+    					<td id="02"></td>
+    				</tr>
+    				<tr>
+    					<td id="10"></td>
+    					<td id="11"></td>
+    					<td id="12"></td>
+    				</tr>
+    				<tr>
+    					<td id="20"></td>
+    					<td id="21"></td>
+    					<td id="22"></td>
+    				</tr>
+    			</table>
+    		</div>
+    		<div id="response"></div>
+    	</div>
   <div id="login" align="center">
     <input type="text" id="nick" autofocus placeholder="Enter your nick">
   </div>
     <ul id="messages"></ul>
     <ul id="connections">
-      <h4><?php echo "Members Online"; ?></h4>
+      <h4>Current Online</h4>
     </ul>
     <br>
     <br>
@@ -127,12 +248,24 @@ right: 1px;
     <form action="">
       <input id="m" autocomplete="off" placeholder="Your message!" /><button>Send</button>
     </form>
+    <div id="play-game"><input type="button" value="I'm Bored"></div>
+    <div id="invite-response">
+    	<div class="message"></div>
+    	<button id="accept">Accept Challenge</button>
+    	<button id="decline">Chicken Out!</button>
+    </div>
     <div id="chat-panel"></div>
 <script src="/socket.io/socket.io.js"></script>
 <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
   var socket = io();
   var currentuser ;
+  var gameplay ;
+  var gameplaystatus;
+  var turn;
+  var challenger;
+  var challenged;
+  var target;
 
   $('form').submit(function(){
     var nick = $('#nick').val();
@@ -185,7 +318,7 @@ right: 1px;
               $('<span/>', {text: ' : left '+data.numUsers + ' remaining'})
         )
     );
-    $('.'+data.username).remove();  
+    $('.'+data.username).remove();
   });
 
   //other users typing status
@@ -215,6 +348,9 @@ right: 1px;
   );
   });
   socket.on('new connection',function(data){
+    if(!$('#invite .'+data.username).length){
+    	$('#invite').append('<option class="'+data.username+'" value="'+data.username+'">'+data.username+'</option>');
+    }
     $('#connections').append(
       $('<li>',{'class' : data.username}).append(
         $('<strong/>',{text:data.username})
@@ -224,6 +360,9 @@ right: 1px;
   socket.on('get users',function(data){
     $('ul li:not(:first)').remove();
     for (var key in data) {
+    if(!$('#invite .'+data[key].username).length){
+    	$('#invite').append('<option class="'+data[key].username+'" value="'+data[key].username+'">'+data[key].username+'</option>');
+    }
       $('#connections').append(
         $('<li>',{'class' : data[key].username}).append(
           $('<strong/>',{text:data[key].username})
@@ -256,8 +395,110 @@ right: 1px;
     }
   });
 
+  //get game invite
+  socket.on('send invite',function(data){
+  	gameplay = data.challenger;
+  	$('.message').append('<strong>'+data.challenger+'</strong><span>: has challenged you for a game</span>');
+  	$('#invite-response').show();
+  });
+
+
+	//challenge declined
+	socket.on('challenge declinde',function(data){
+		$('#response').text(data.challenged+' is afraid of you try someone else');
+		$('#status').show();
+	});
+
+	//challenge accepted
+	socket.on('challenge accepted',function(data){
+		$('#response').text(data.challenged+' accepted your challenge');
+		gameplaystatus = 'challenger';
+		challenger = data.challenger;
+		challenged = data.challenged;
+	});
+
+	//game move
+	socket.on('game move',function(data){
+		turn = true;
+		if(data.value == 'challenged'){
+			$('#'+data.move).append("<div class='game-circle'></div>");
+		}
+		else{
+			$('#'+data.move).append("<div class='game-cross'></div>");
+		}
+	});
+
+	//game win 
+	socket.on('game win',function(){
+		alert('u won');
+	});
+
+	//game lost 
+	socket.on('game lost',function(){
+		alert('u lost');
+	});
+
   //get nick name and register whith server
 $(document).ready(function(){
+	$('#playground').on('click','td',function(){
+		if(turn){
+			if($(this).children().length > 0){}
+			else{
+				if(gameplaystatus == 'challenged'){
+					$(this).append("<div class='game-circle'></div>");
+				}
+				else{
+					$(this).append("<div class='game-cross'></div>");
+				}
+				var target;
+				if(currentuser == challenged){
+					target = challenger;
+				}
+				else{
+					target = challenged;
+				}
+				socket.emit('game move',{
+					move : $(this).attr('id'),
+					value : gameplaystatus,
+					target : target,
+					current : currentuser,
+					name : challenger+challenged
+
+				});
+				turn = false;
+			}
+		}
+	});
+	$('#invite-response').on('click','button',function(){
+		var response = $(this).attr('id');
+		if(response==='accept'){
+			socket.emit('challenge accepted',{challenger :gameplay,challenged: currentuser});
+			$('#game-panel').show();
+			$('#status').hide();
+			gameplaystatus = 'challenged';
+			turn = true;
+			challenger = gameplay;
+			challenged = currentuser;
+		}
+		else{
+			socket.emit('challenge declined',{challenger :gameplay,challenged: currentuser});
+		}
+		$('#invite-response').hide();
+	});
+	//send game invite
+	$('#status').on('click','input',function(){
+		var challenged =  $( "#invite option:selected" ).text();
+		var challenger = currentuser;
+		socket.emit('game invite',{challenged:challenged , challenger:challenger});
+		$('#status').hide();
+	});
+	//i am bored
+	$('#play-game').on('click','input',function(){
+		$('#game-panel').show();
+	});
+	$('#exit').on('click',function(){
+		$('#game-panel').hide();
+	});
 	//get private chat message
 	$('#chat-panel').on('keypress','input',function(e){
 		if(e.keyCode == 13){      //enter
