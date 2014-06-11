@@ -22,113 +22,149 @@ var games = {};
 io.on('connection', function (socket) {
 
  var  checkwinner = function(move,name,value){
-  var x = parseInt(move[0]);
-  var y = parseInt(move[1]);
+  var x = parseInt(move[1]);
+  var y = parseInt(move[0]);
   var counter = [1,1,1,1];
   var xmax = games[name].size[0];
   var ymax = games[name].size[1];
   var play = games[name].playground;
+    console.log('play ground '+games[name].playground);
+  console.log("our move "+move);
+  console.log('move value' + value);
 
   //0 degree traversing
   for(var i = x+1; i< xmax; i++){
+    console.log(0+'degree loop');
+    console.log(i);
     if(play[y][i] == value){
       counter[0]++;
       if(counter[0]== 3){
         return 'win';
       }
+    console.log('latest counter value = '+counter[0]);
     }
     else{
+    console.log('latest counter value = '+counter[0]);
       break;
     }
   }
 
   //270 degree
   for(var i = y+1; i < ymax; i++){
+        console.log(270+'degree loop');
+    console.log(i);
     if(play[i][x] == value){
       counter[1]++;
       if(counter[1] == 3){
         return 'win';
       }
+    console.log('latest counter value = '+counter[1]);
     }
     else{
+    console.log('latest counter value = '+counter[1]);
       break;
     }
   }
 
   //180 degree
   for(var i = x-1; i>=0; i--){
-    if(play[i][y] == value){
+        console.log(180+'degree loop');
+    console.log(i);
+    if(play[y][i] == value){
       counter[0]++;
       if(counter[0] == 3){
         return 'win';
       }
+    console.log('latest counter value = '+counter[0]);
     }
     else{
+    console.log('latest counter value = '+counter[0]);
       break;
     }
   }
 
   //90 degree
   for(var i = y-1; i >=0; i--){
-    if(play[x][i] == value){
+        console.log(90+'degree loop');
+    console.log(i);
+    if(play[i][x] == value){
       counter[1]++;
       if(counter[1] == 3){
         return 'win';
       }
+    console.log('latest counter value = '+counter[1]);
     }
     else{
+    console.log('latest counter value = '+counter[1]);
       break;
     }
   }
 
   //315 degree
   for(var i=x+1,j=y+1; i< xmax && j < ymax; i++,j++){
-    if(play[i][j] == value){
+        console.log(315+'degree loop');
+    console.log(i);
+    if(play[j][i] == value){
       counter[2]++;
       if(counter[2]==3){
         return 'win';
       }
+    console.log('latest counter value = '+counter[2]);
     }
     else{
+    console.log('latest counter value = '+counter[2]);
       break;
     }
   }
 
   //225 degree
   for(var i=x-1, j=y+1; i>=0 && j< ymax; i--,j++ ){
-    if(play[i][j] == value){
+        console.log(225+'degree loop');
+    console.log(i);
+    if(play[j][i] == value){
       counter[3]++;
       if(counter[3] == 3){
         return 'win';
       }
+    console.log('latest counter value = '+counter[3]);
     }
     else{
+    console.log('latest counter value = '+counter[3]);
       break;
     }
   }
 
   //135 degree
   for(var i=x-1,j=y-1; i>=0 && j>=0; i--,j--){
-    if(play[i][j] == value){
+        console.log(135+'degree loop');
+    console.log(i);
+    if(play[j][i] == value){
       counter[2]++;
       if(counter[2] == 3){
         return 'win';
       }
+    console.log('latest counter value = '+counter[2]);
     }
     else{
+    console.log('latest counter value = '+counter[2]);
       break;
     }
   }
 
+
   //45 degree
   for(var i=x+1,j=y-1; i < xmax && j>=0; i++,j--){
-    if(play[i][j] == value){
+    console.log(45+'degree loop');
+    console.log(i);
+    if(play[j][i] == value){
       counter[3]++;
       if(counter[3] == 3){
         return 'win';
       }
+    console.log('latest counter value = '+counter[3]);
     }
     else{
+    console.log('latest counter value = '+counter[3]);
       break;
     }
   }
