@@ -20,21 +20,116 @@ var numUsers = 0;
 var games = {};
 
 io.on('connection', function (socket) {
- var  checkwinner = function(x,y,name){
-  if(games[name].playground[0][y] == games[name].playground[1][y] && games[name].playground[1][y] == games[name].playground[2][y]){
-    return 'win';
-  }
-  else if(games[name].playground[x][0] == games[name].playground[x][1] && games[name].playground[x][1] == games[name].playground[x][2]){
-    return 'win';
-  }
-  if(x == y){  
-    if(games[name].playground[0][0] == games[name].playground[1][1] && games[name].playground[1][1] == games[name].playground[2][2]){
-      return 'win';
+
+ var  checkwinner = function(move,name,value){
+  var x = parseInt(move[0]);
+  var y = parseInt(move[1]);
+  var counter = [1,1,1,1];
+  var xmax = games[name].size[0];
+  var ymax = games[name].size[1];
+  var play = games[name].playground;
+
+  //0 degree traversing
+  for(var i = x+1; i< xmax; i++){
+    if(play[y][i] == value){
+      counter[0]++;
+      if(counter[0]== 3){
+        return 'win';
+      }
+    }
+    else{
+      break;
     }
   }
-  if(x+y == 2){
-    if(games[name].playground[0][2] == games[name].playground[1][1] && games[name].playground[1][1] == games[name].playground[2][0]){
-      return 'win';
+
+  //270 degree
+  for(var i = y+1; i < ymax; i++){
+    if(play[i][x] == value){
+      counter[1]++;
+      if(counter[1] == 3){
+        return 'win';
+      }
+    }
+    else{
+      break;
+    }
+  }
+
+  //180 degree
+  for(var i = x-1; i>=0; i--){
+    if(play[i][y] == value){
+      counter[0]++;
+      if(counter[0] == 3){
+        return 'win';
+      }
+    }
+    else{
+      break;
+    }
+  }
+
+  //90 degree
+  for(var i = y-1; i >=0; i--){
+    if(play[x][i] == value){
+      counter[1]++;
+      if(counter[1] == 3){
+        return 'win';
+      }
+    }
+    else{
+      break;
+    }
+  }
+
+  //315 degree
+  for(var i=x+1,j=y+1; i< xmax && j < ymax; i++,j++){
+    if(play[i][j] == value){
+      counter[2]++;
+      if(counter[2]==3){
+        return 'win';
+      }
+    }
+    else{
+      break;
+    }
+  }
+
+  //225 degree
+  for(var i=x-1, j=y+1; i>=0 && j< ymax; i--,j++ ){
+    if(play[i][j] == value){
+      counter[3]++;
+      if(counter[3] == 3){
+        return 'win';
+      }
+    }
+    else{
+      break;
+    }
+  }
+
+  //135 degree
+  for(var i=x-1,j=y-1; i>=0 && j>=0; i--,j--){
+    if(play[i][j] == value){
+      counter[2]++;
+      if(counter[2] == 3){
+        return 'win';
+      }
+    }
+    else{
+      break;
+    }
+  }
+
+  //45 degree
+  for(var i=x+1,j=y-1; i < xmax && j>=0; i++,j--){
+    if(play[i][j] == value){
+      counter[3]++;
+      if(counter[3] == 3){
+        return 'win';
+      }
+    }
+    else{
+      break;
     }
   }
   return 'continue';
@@ -152,7 +247,8 @@ io.on('connection', function (socket) {
     socket.to(usernames[data.challenger].id).emit('challenge accepted',data);
     var info = {
       status : 0,
-      playground : [['','',''],['','',''],['','','']]
+      playground : [['','',''],['','',''],['','','']],
+      size : [3,3]
     }
     games[data.challenger+data.challenged] = info;
   });
@@ -164,7 +260,7 @@ io.on('connection', function (socket) {
     var y = data.move[1];
     games[data.name].playground[x][y]=data.value;
     socket.to(usernames[data.target].id).emit('game move',data);
-    var check = checkwinner(x,y,data.name);
+    var check = checkwinner(data.move,data.name,data.value);
     if(check == 'win'){
       socket.emit('game win',{
         winner : data.current,
