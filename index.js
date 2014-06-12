@@ -27,144 +27,144 @@ io.on('connection', function (socket) {
   var counter = [1,1,1,1];
   var xmax = games[name].size[0];
   var ymax = games[name].size[1];
-  var play = games[name].playground;
+  var play = games[name].playground;/*
     console.log('play ground '+games[name].playground);
   console.log("our move "+move);
-  console.log('move value' + value);
+  console.log('move value' + value);*/
 
   //0 degree traversing
-  for(var i = x+1; i< xmax; i++){
+  for(var i = x+1; i< xmax; i++){/*
     console.log(0+'degree loop');
-    console.log(i);
+    console.log(i);*/
     if(play[y][i] == value){
       counter[0]++;
       if(counter[0]== 3){
         return 'win';
-      }
-    console.log('latest counter value = '+counter[0]);
+      }/*
+    console.log('latest counter value = '+counter[0]);*/
     }
-    else{
-    console.log('latest counter value = '+counter[0]);
+    else{/*
+    console.log('latest counter value = '+counter[0]);*/
       break;
     }
   }
 
   //270 degree
-  for(var i = y+1; i < ymax; i++){
+  for(var i = y+1; i < ymax; i++){/*
         console.log(270+'degree loop');
-    console.log(i);
+    console.log(i);*/
     if(play[i][x] == value){
       counter[1]++;
       if(counter[1] == 3){
         return 'win';
-      }
-    console.log('latest counter value = '+counter[1]);
+      }/*
+    console.log('latest counter value = '+counter[1]);*/
     }
-    else{
-    console.log('latest counter value = '+counter[1]);
+    else{/*
+    console.log('latest counter value = '+counter[1]);*/
       break;
     }
   }
 
   //180 degree
-  for(var i = x-1; i>=0; i--){
+  for(var i = x-1; i>=0; i--){/*
         console.log(180+'degree loop');
-    console.log(i);
+    console.log(i);*/
     if(play[y][i] == value){
       counter[0]++;
       if(counter[0] == 3){
         return 'win';
-      }
-    console.log('latest counter value = '+counter[0]);
+      }/*
+    console.log('latest counter value = '+counter[0]);*/
     }
-    else{
-    console.log('latest counter value = '+counter[0]);
+    else{/*
+    console.log('latest counter value = '+counter[0]);*/
       break;
     }
   }
 
   //90 degree
-  for(var i = y-1; i >=0; i--){
+  for(var i = y-1; i >=0; i--){/*
         console.log(90+'degree loop');
-    console.log(i);
+    console.log(i);*/
     if(play[i][x] == value){
       counter[1]++;
       if(counter[1] == 3){
         return 'win';
-      }
-    console.log('latest counter value = '+counter[1]);
+      }/*
+    console.log('latest counter value = '+counter[1]);*/
     }
-    else{
-    console.log('latest counter value = '+counter[1]);
+    else{/*
+    console.log('latest counter value = '+counter[1]);*/
       break;
     }
   }
 
   //315 degree
-  for(var i=x+1,j=y+1; i< xmax && j < ymax; i++,j++){
+  for(var i=x+1,j=y+1; i< xmax && j < ymax; i++,j++){/*
         console.log(315+'degree loop');
-    console.log(i);
+    console.log(i);*/
     if(play[j][i] == value){
       counter[2]++;
       if(counter[2]==3){
         return 'win';
-      }
-    console.log('latest counter value = '+counter[2]);
+      }/*
+    console.log('latest counter value = '+counter[2]);*/
     }
-    else{
-    console.log('latest counter value = '+counter[2]);
+    else{/*
+    console.log('latest counter value = '+counter[2]);*/
       break;
     }
   }
 
   //225 degree
-  for(var i=x-1, j=y+1; i>=0 && j< ymax; i--,j++ ){
+  for(var i=x-1, j=y+1; i>=0 && j< ymax; i--,j++ ){/*
         console.log(225+'degree loop');
-    console.log(i);
+    console.log(i);*/
     if(play[j][i] == value){
       counter[3]++;
       if(counter[3] == 3){
         return 'win';
-      }
-    console.log('latest counter value = '+counter[3]);
+      }/*
+    console.log('latest counter value = '+counter[3]);*/
     }
-    else{
-    console.log('latest counter value = '+counter[3]);
+    else{/*
+    console.log('latest counter value = '+counter[3]);*/
       break;
     }
   }
 
   //135 degree
-  for(var i=x-1,j=y-1; i>=0 && j>=0; i--,j--){
+  for(var i=x-1,j=y-1; i>=0 && j>=0; i--,j--){/*
         console.log(135+'degree loop');
-    console.log(i);
+    console.log(i);*/
     if(play[j][i] == value){
       counter[2]++;
       if(counter[2] == 3){
         return 'win';
-      }
-    console.log('latest counter value = '+counter[2]);
+      }/*
+    console.log('latest counter value = '+counter[2]);*/
     }
-    else{
-    console.log('latest counter value = '+counter[2]);
+    else{/*
+    console.log('latest counter value = '+counter[2]);*/
       break;
     }
   }
 
 
   //45 degree
-  for(var i=x+1,j=y-1; i < xmax && j>=0; i++,j--){
+  for(var i=x+1,j=y-1; i < xmax && j>=0; i++,j--){/*
     console.log(45+'degree loop');
-    console.log(i);
+    console.log(i);*/
     if(play[j][i] == value){
       counter[3]++;
       if(counter[3] == 3){
         return 'win';
-      }
-    console.log('latest counter value = '+counter[3]);
+      }/*
+    console.log('latest counter value = '+counter[3]);*/
     }
-    else{
-    console.log('latest counter value = '+counter[3]);
+    else{/*
+    console.log('latest counter value = '+counter[3]);*/
       break;
     }
   }
@@ -253,6 +253,7 @@ io.on('connection', function (socket) {
         numUsers: numUsers
       });
     }
+    socket.emit('get users',usernames);
   });
 
   //game invite
@@ -291,17 +292,25 @@ io.on('connection', function (socket) {
 
   //game move
   socket.on('game move',function(data){
-    games[data.name].status += 1;
+    games[data.name].status++;
     var x = data.move[0];
     var y = data.move[1];
     games[data.name].playground[x][y]=data.value;
     socket.to(usernames[data.target].id).emit('game move',data);
     var check = checkwinner(data.move,data.name,data.value);
+    
     if(check == 'win'){
       socket.emit('game win',{
         winner : data.current,
       });
       socket.to(usernames[data.target].id).emit('game lost');
+      delete games[data.name];
+    }
+    
+    else if(games[data.name].status == 9){
+      socket.emit('draw');
+      socket.to(usernames[data.target].id).emit('draw');
+      delete games[data.name];
     }
   });
 });

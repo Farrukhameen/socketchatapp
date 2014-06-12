@@ -8,6 +8,21 @@
       form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
       form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
       form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      .draw{
+color: rgb(206, 206, 0);
+font-size: 20px;
+font-family: monospace;
+}
+      .win{
+color: green;
+font-size: 20px;
+font-family: monospace;
+      }
+      .lost{
+color: red;
+font-size: 20px;
+font-family: monospace;
+}
       #playground{margin-top: 10px;}
       .message{}
       #invite-response button{
@@ -258,10 +273,21 @@ width: 100%;
 <script src="/socket.io/socket.io.js"></script>
 <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
+function resetgameplay(){
+	$('#playground td').children().remove();
+	$('#status').show();
+	$('#response').text('');
+	gameplay = '';
+	gameplaystatus = '';
+	turn = false;
+	challenger = '';
+	challenged = '';
+	target = '';
+}
   var socket = io();
   var currentuser ;
   var gameplay ;
-  var gameplaystatus;
+  var gameplaystatus='' ;
   var turn;
   var challenger;
   var challenged;
@@ -407,6 +433,8 @@ width: 100%;
 	socket.on('challenge declinde',function(data){
 		$('#response').text(data.challenged+' is afraid of you try someone else');
 		$('#status').show();
+		$('#playground td').children().remove();
+		trun = false;
 	});
 
 	//challenge accepted
@@ -420,22 +448,32 @@ width: 100%;
 	//game move
 	socket.on('game move',function(data){
 		turn = true;
-		if(data.value == 'challenged'){
-			$('#'+data.move).append("<div class='game-circle'></div>");
-		}
-		else{
-			$('#'+data.move).append("<div class='game-cross'></div>");
+		if(!$('#'+data.move).children().length){
+			if(data.value == 'challenged'){
+				$('#'+data.move).append("<div class='game-circle'></div>");
+			}
+			else{
+				$('#'+data.move).append("<div class='game-cross'></div>");
+			}
 		}
 	});
 
 	//game win 
 	socket.on('game win',function(){
-		alert('u won');
+		resetgameplay();
+		$('#response').append('<div class="win">Yahoo you Won :)</div>');
 	});
 
 	//game lost 
 	socket.on('game lost',function(){
-		alert('u lost');
+		resetgameplay();
+		$('#response').append('<div class="lost">Brrrrrr u lost :(</div>');
+	});
+
+	//game draw
+	socket.on('draw',function(){
+		resetgameplay();
+		$('#response').append('<div class="draw">draw</div>');
 	});
 
   //get nick name and register whith server
@@ -465,8 +503,8 @@ $(document).ready(function(){
 					name : challenger+challenged
 
 				});
-				turn = false;
 			}
+			turn = false;
 		}
 	});
 	$('#invite-response').on('click','button',function(){
@@ -491,6 +529,7 @@ $(document).ready(function(){
 		var challenger = currentuser;
 		socket.emit('game invite',{challenged:challenged , challenger:challenger});
 		$('#status').hide();
+		$('#response').text('');
 	});
 	//i am bored
 	$('#play-game').on('click','input',function(){
