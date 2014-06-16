@@ -48,6 +48,11 @@ right: 0px;
       #response{
 width: 300px;
 height: 40px;
+font-size: 15px;
+text-align: center;
+color: rgb(92, 92, 92);
+margin-top: 5px;
+font-family: cursive;
 }
       #status input[type="button"]{
 width: 100px;
@@ -61,7 +66,8 @@ margin-right: 5px;
 height: 30px;
 }
       #playground table{width: 300px; height: 300px;border: 1px solid gray;}
-      td{width: 50px; height: 50px;border: 1px solid rgb(238, 236, 236);}
+      td{width: 50px; height: 50px; cursor: pointer; border: 1px solid rgb(238, 236, 236);}
+      td:hover{border: 1px solid dimgray;}
       #game-panel{
 display: none;
 margin-left: 30%;
@@ -219,6 +225,7 @@ height: 4%;
 margin-top: -2%;
 width: 100%;
 }
+#turn {color: black; font-size: 20px; display: none; text-align: center;}
     </style>
   </head>
   <body>
@@ -228,23 +235,57 @@ width: 100%;
     			<select id="invite"></select>
     			<input type="button" value="Invite">
     		</div>
+    		<div id="turn"></div>
     		<div id="playground">
     			<table>
     				<tr>
     					<td id="00"></td>
     					<td id="01"></td>
     					<td id="02"></td>
+              <td id="03"></td>
+              <td id="04"></td>
+              <td id="05"></td>
     				</tr>
     				<tr>
     					<td id="10"></td>
     					<td id="11"></td>
     					<td id="12"></td>
+              <td id="13"></td>
+              <td id="14"></td>
+              <td id="15"></td>
     				</tr>
     				<tr>
     					<td id="20"></td>
     					<td id="21"></td>
     					<td id="22"></td>
+              <td id="23"></td>
+              <td id="24"></td>
+              <td id="25"></td>
     				</tr>
+            <tr>
+              <td id="30"></td>
+              <td id="31"></td>
+              <td id="32"></td>
+              <td id="33"></td>
+              <td id="34"></td>
+              <td id="35"></td>
+            </tr>
+            <tr>
+              <td id="40"></td>
+              <td id="41"></td>
+              <td id="42"></td>
+              <td id="43"></td>
+              <td id="44"></td>
+              <td id="45"></td>
+            </tr>
+            <tr>
+              <td id="50"></td>
+              <td id="51"></td>
+              <td id="52"></td>
+              <td id="53"></td>
+              <td id="54"></td>
+              <td id="55"></td>
+            </tr>
     			</table>
     		</div>
     		<div id="response"></div>
@@ -274,6 +315,7 @@ width: 100%;
 <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
 function resetgameplay(){
+	$('#turn').hide();
 	$('#playground td').children().remove();
 	$('#status').show();
 	$('#response').text('');
@@ -336,8 +378,8 @@ function resetgameplay(){
 
   //User logout message
   socket.on('user left',function(data){
-    $('#messages').append(
-      $('<li>').prepend(
+    $('#messages').prepend(
+      $('<li>').append(
           $('<strong/>',{text:data.username})
               )
       .append(
@@ -434,12 +476,14 @@ function resetgameplay(){
 		$('#response').text(data.challenged+' is afraid of you try someone else');
 		$('#status').show();
 		$('#playground td').children().remove();
-		trun = false;
+		turn = false;
 	});
 
 	//challenge accepted
 	socket.on('challenge accepted',function(data){
 		$('#response').text(data.challenged+' accepted your challenge');
+		$('#turn').show();
+		$('#turn').text('Wait for your turn');
 		gameplaystatus = 'challenger';
 		challenger = data.challenger;
 		challenged = data.challenged;
@@ -448,6 +492,7 @@ function resetgameplay(){
 	//game move
 	socket.on('game move',function(data){
 		turn = true;
+		$('#turn').text('Your turn');
 		if(!$('#'+data.move).children().length){
 			if(data.value == 'challenged'){
 				$('#'+data.move).append("<div class='game-circle'></div>");
@@ -460,13 +505,13 @@ function resetgameplay(){
 
 	//game win 
 	socket.on('game win',function(){
-		resetgameplay();
+		//resetgameplay();
 		$('#response').append('<div class="win">Yahoo you Won :)</div>');
 	});
 
 	//game lost 
 	socket.on('game lost',function(){
-		resetgameplay();
+		//resetgameplay();
 		$('#response').append('<div class="lost">Brrrrrr u lost :(</div>');
 	});
 
@@ -488,7 +533,6 @@ $(document).ready(function(){
 				else{
 					$(this).append("<div class='game-cross'></div>");
 				}
-				var target;
 				if(currentuser == challenged){
 					target = challenger;
 				}
@@ -503,8 +547,9 @@ $(document).ready(function(){
 					name : challenger+challenged
 
 				});
+				turn = false;
+				$('#turn').text('Wait for you turn');
 			}
-			turn = false;
 		}
 	});
 	$('#invite-response').on('click','button',function(){
@@ -513,6 +558,8 @@ $(document).ready(function(){
 			socket.emit('challenge accepted',{challenger :gameplay,challenged: currentuser});
 			$('#game-panel').show();
 			$('#status').hide();
+			$('#turn').show();
+			$('#turn').text('Your turn');
 			gameplaystatus = 'challenged';
 			turn = true;
 			challenger = gameplay;
@@ -537,6 +584,20 @@ $(document).ready(function(){
 	});
 	$('#exit').on('click',function(){
 		$('#game-panel').hide();
+    if(gameplaystatus){
+      if(currentuser == challenged){
+        target = challenger;
+      }
+      else{
+        target = challenged;
+      }
+      socket.emit('game left',{
+        name : challenger+challenged,
+        target : target,
+        user : currentuser
+      });
+    }
+    resetgameplay();
 	});
 	//get private chat message
 	$('#chat-panel').on('keypress','input',function(e){
@@ -551,7 +612,7 @@ $(document).ready(function(){
 			            $('<span/>', {text: msg})
 			    )
 			  );
-			var target = $(this).attr('class');
+			target = $(this).attr('class');
 			socket.emit('send private',{
 				target : target,
 				sender : currentuser,
@@ -590,6 +651,12 @@ $(document).ready(function(){
     }
   });
 });
+
+//user left game
+  socket.on('game left',function(data){
+    resetgameplay();
+    $('#response').text(data.user+' left the game try someone else');
+  });
 
 //basic function to get typing status
 var laststatus = 'stop typing';

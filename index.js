@@ -254,6 +254,7 @@ io.on('connection', function (socket) {
       });
     }
     socket.emit('get users',usernames);
+    socket.broadcast.emit('challenge decline',{challenger :'unknown',challenged: socket.username})
   });
 
   //game invite
@@ -284,8 +285,8 @@ io.on('connection', function (socket) {
     socket.to(usernames[data.challenger].id).emit('challenge accepted',data);
     var info = {
       status : 0,
-      playground : [['','',''],['','',''],['','','']],
-      size : [3,3]
+      playground : [['','','','','',''],['','','','','',''],['','','','','',''],['','','','','',''],['','','','','',''],['','','','','','']],
+      size : [6,6]
     }
     games[data.challenger+data.challenged] = info;
   });
@@ -307,10 +308,15 @@ io.on('connection', function (socket) {
       delete games[data.name];
     }
     
-    else if(games[data.name].status == 9){
+    else if(games[data.name].status == 36){
       socket.emit('draw');
       socket.to(usernames[data.target].id).emit('draw');
       delete games[data.name];
     }
+  });
+  //game left
+  socket.on('game left',function(data){
+  	delete games[data.name];
+  	socket.to(usernames[data.target].id).emit('game left',data);
   });
 });
