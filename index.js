@@ -21,7 +21,7 @@ var games = {};
 
 io.on('connection', function (socket) {
 
- var  checkwinner = function(move,name,value){
+  var  checkwinner = function(move,name,value){
   var x = parseInt(move[1]);
   var y = parseInt(move[0]);
   var counter = [1,1,1,1];
@@ -314,6 +314,7 @@ io.on('connection', function (socket) {
       delete games[data.name];
     }
   });
+  
   //game left
   socket.on('game left',function(data){
   	delete games[data.name];
