@@ -24,17 +24,28 @@
         font-family: monospace;
       }
       #playground{margin-top: 10px;}
-      .message{}
-      #invite-response button{
-        width: 225px;
+      .message{
         padding: 5px;
-        font-size: 19px;
+        width: 250px;
+        font-family: -webkit-body;
+        font-size: 15px;
+      }
+      #invite-response button{
+        width: 160px;
+        padding: 4px;
+        font-size: 18px;
+        margin: 2px;
+        font-family: sans-serif;
       }
       #invite-response{
       	display: none;
         position: absolute;
         bottom: 45px;
         right: 45px;
+        width: 270px;
+        text-align: center;
+        padding: 10px;
+        background: rgb(236, 236, 236);
       }
       #status{position: relative;}
       #exit{
@@ -85,7 +96,7 @@
 	  #play-game input{
       width: 200px;
       padding: 7px;
-      background: blue;
+      background: rgb(53, 126, 255);
       font-size: 20px;
     }
       #chat-panel ul li:nth-child(odd) { background: #fff; }
@@ -327,13 +338,13 @@
     	target = '';
     }
       var socket = io();
-      var currentuser ;
-      var gameplay ;
+      var currentuser = '' ;
+      var gameplay = '' ;
       var gameplaystatus='' ;
-      var turn;
-      var challenger;
-      var challenged;
-      var target;
+      var turn = '';
+      var challenger = '';
+      var challenged = '';
+      var target = '';
 
       $('form').submit(function(){
         var nick = $('#nick').val();
@@ -465,9 +476,14 @@
 
       //get game invite
       socket.on('send invite',function(data){
-      	gameplay = data.challenger;
-      	$('.message').append('<strong>'+data.challenger+'</strong><span>: has challenged you for a game</span>');
-      	$('#invite-response').show();
+        if(gameplay === ''){
+        	gameplay = data.challenger;
+        	$('.message').append('<strong>'+data.challenger+'</strong><span>: has challenged you for a game</span>');
+        	$('#invite-response').show();
+        }
+        else{
+          socket.emit('busy',{challenger :data.challenger,challenged: currentuser})
+        }
       });
 
 
@@ -521,6 +537,18 @@
     		$('#response').append('<div class="draw">draw</div>');
     	});
 
+      //user busy
+      socket.on('busy',function(data){
+        resetgameplay();
+        $('#response').append('<div>'+data.challenged+' is busy</div>');
+      });
+
+      //username exists
+      socket.on('name exists',function(data){
+        alert('this name already exists, choose another one');
+        $('#login').show();
+      });
+
       //get nick name and register whith server
     $(document).ready(function(){
     	$('#playground').on('click','td',function(){
@@ -572,8 +600,9 @@
     	});
     	//send game invite
     	$('#status').on('click','input',function(){
-    		var challenged =  $( "#invite option:selected" ).text();
-    		var challenger = currentuser;
+    		challenged =  $( "#invite option:selected" ).text();
+    		challenger = currentuser;
+        gameplay = currentuser;
     		socket.emit('game invite',{challenged:challenged , challenger:challenger});
     		$('#status').hide();
     		$('#response').text('');

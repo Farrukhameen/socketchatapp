@@ -12,8 +12,6 @@ app.get('/', function(req, res){
   res.sendfile('./public/index.html');
 });
 
-// Chatroom
-
 // usernames which are currently connected to the chat
 var usernames = {};
 var numUsers = 0;
@@ -27,144 +25,108 @@ io.on('connection', function (socket) {
   var counter = [1,1,1,1];
   var xmax = games[name].size[0];
   var ymax = games[name].size[1];
-  var play = games[name].playground;/*
-    console.log('play ground '+games[name].playground);
-  console.log("our move "+move);
-  console.log('move value' + value);*/
+  var play = games[name].playground;
 
   //0 degree traversing
-  for(var i = x+1; i< xmax; i++){/*
-    console.log(0+'degree loop');
-    console.log(i);*/
+  for(var i = x+1; i< xmax; i++){
     if(play[y][i] == value){
       counter[0]++;
       if(counter[0]== 3){
         return 'win';
-      }/*
-    console.log('latest counter value = '+counter[0]);*/
+      }
     }
-    else{/*
-    console.log('latest counter value = '+counter[0]);*/
+    else{
       break;
     }
   }
 
   //270 degree
-  for(var i = y+1; i < ymax; i++){/*
-        console.log(270+'degree loop');
-    console.log(i);*/
+  for(var i = y+1; i < ymax; i++){
     if(play[i][x] == value){
       counter[1]++;
       if(counter[1] == 3){
         return 'win';
-      }/*
-    console.log('latest counter value = '+counter[1]);*/
+      }
     }
-    else{/*
-    console.log('latest counter value = '+counter[1]);*/
+    else{
       break;
     }
   }
 
   //180 degree
-  for(var i = x-1; i>=0; i--){/*
-        console.log(180+'degree loop');
-    console.log(i);*/
+  for(var i = x-1; i>=0; i--){
     if(play[y][i] == value){
       counter[0]++;
       if(counter[0] == 3){
         return 'win';
-      }/*
-    console.log('latest counter value = '+counter[0]);*/
+      }
     }
-    else{/*
-    console.log('latest counter value = '+counter[0]);*/
+    else{
       break;
     }
   }
 
   //90 degree
-  for(var i = y-1; i >=0; i--){/*
-        console.log(90+'degree loop');
-    console.log(i);*/
+  for(var i = y-1; i >=0; i--){
     if(play[i][x] == value){
       counter[1]++;
       if(counter[1] == 3){
         return 'win';
-      }/*
-    console.log('latest counter value = '+counter[1]);*/
+      }
     }
-    else{/*
-    console.log('latest counter value = '+counter[1]);*/
+    else{
       break;
     }
   }
 
   //315 degree
-  for(var i=x+1,j=y+1; i< xmax && j < ymax; i++,j++){/*
-        console.log(315+'degree loop');
-    console.log(i);*/
+  for(var i=x+1,j=y+1; i< xmax && j < ymax; i++,j++){
     if(play[j][i] == value){
       counter[2]++;
       if(counter[2]==3){
         return 'win';
-      }/*
-    console.log('latest counter value = '+counter[2]);*/
+      }
     }
-    else{/*
-    console.log('latest counter value = '+counter[2]);*/
+    else{
       break;
     }
   }
 
   //225 degree
-  for(var i=x-1, j=y+1; i>=0 && j< ymax; i--,j++ ){/*
-        console.log(225+'degree loop');
-    console.log(i);*/
+  for(var i=x-1, j=y+1; i>=0 && j< ymax; i--,j++ ){
     if(play[j][i] == value){
       counter[3]++;
       if(counter[3] == 3){
         return 'win';
-      }/*
-    console.log('latest counter value = '+counter[3]);*/
+      }
     }
-    else{/*
-    console.log('latest counter value = '+counter[3]);*/
+    else{
       break;
     }
   }
 
   //135 degree
-  for(var i=x-1,j=y-1; i>=0 && j>=0; i--,j--){/*
-        console.log(135+'degree loop');
-    console.log(i);*/
+  for(var i=x-1,j=y-1; i>=0 && j>=0; i--,j--){
     if(play[j][i] == value){
       counter[2]++;
       if(counter[2] == 3){
         return 'win';
-      }/*
-    console.log('latest counter value = '+counter[2]);*/
+      }
     }
-    else{/*
-    console.log('latest counter value = '+counter[2]);*/
+    else{
       break;
     }
   }
 
-
   //45 degree
-  for(var i=x+1,j=y-1; i < xmax && j>=0; i++,j--){/*
-    console.log(45+'degree loop');
-    console.log(i);*/
+  for(var i=x+1,j=y-1; i < xmax && j>=0; i++,j--){
     if(play[j][i] == value){
       counter[3]++;
       if(counter[3] == 3){
         return 'win';
-      }/*
-    console.log('latest counter value = '+counter[3]);*/
+      }
     }
-    else{/*
-    console.log('latest counter value = '+counter[3]);*/
+    else{
       break;
     }
   }
@@ -182,33 +144,38 @@ io.on('connection', function (socket) {
 
   // when the client emits 'add user', this listens and executes
   socket.on('add user', function (username) {
-  	    var info = {
-    	username: username,
-    	id : socket.id
+    if(!(username in usernames)){
+    	var info = {
+      	username: username,
+      	id : socket.id
+      }
+      usernames[username] = info;
+      // we store the username in the socket session for this client
+      socket.username = username;
+      var socketid = usernames[username].id;
+
+      // add the client's username to the global list
+      ++numUsers;
+      addedUser = true;
+      socket.emit('login', {
+        numUsers: numUsers
+      });
+
+      // echo globally (all clients) that a person has connected
+      socket.broadcast.emit('user joined', {
+        username: socket.username,
+        numUsers: numUsers
+      });
+
+      //add user to connection list
+      socket.broadcast.emit('new connection', {
+        username: socket.username,
+        numUsers: numUsers
+      });
     }
-    usernames[username] = info;
-    // we store the username in the socket session for this client
-    socket.username = username;
-    var socketid = usernames[username].id;
-
-    // add the client's username to the global list
-    ++numUsers;
-    addedUser = true;
-    socket.emit('login', {
-      numUsers: numUsers
-    });
-
-    // echo globally (all clients) that a person has connected
-    socket.broadcast.emit('user joined', {
-      username: socket.username,
-      numUsers: numUsers
-    });
-
-    //add user to connection list
-    socket.broadcast.emit('new connection', {
-      username: socket.username,
-      numUsers: numUsers
-    });
+    else{
+      socket.emit('name exists',username);
+    }
   });
 
   //private msg handling
@@ -239,14 +206,12 @@ io.on('connection', function (socket) {
       username: socket.username
     });
   });
-
   // when the user disconnects.. perform this
   socket.on('disconnect', function () {
     // remove the username from global usernames list
     if (addedUser) {
       delete usernames[socket.username];
       --numUsers;
-
       // echo globally that this client has left
       socket.broadcast.emit('user left', {
         username: socket.username,
@@ -307,7 +272,6 @@ io.on('connection', function (socket) {
       socket.to(usernames[data.target].id).emit('game lost');
       delete games[data.name];
     }
-    
     else if(games[data.name].status == 36){
       socket.emit('draw');
       socket.to(usernames[data.target].id).emit('draw');
@@ -319,5 +283,10 @@ io.on('connection', function (socket) {
   socket.on('game left',function(data){
   	delete games[data.name];
   	socket.to(usernames[data.target].id).emit('game left',data);
+  });
+
+// user busy
+  socket.on('busy',function(data){
+    socket.to(usernames[data.challenger].id).emit('busy',data);
   });
 });
