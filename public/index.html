@@ -166,7 +166,7 @@
         background: #efefef;
         z-index: 9;
       }
-      #messages { list-style-type: none; margin: 0; padding: 0; width: 85%; float: left; }
+      #messages { list-style-type: none; margin: 0; padding: 0; width: 40%; float: left; }
       #messages li { padding: 5px 10px; }
       #messages li:nth-child(odd) { background: #eee; }
       #m{width: 90.5%;}
@@ -237,6 +237,17 @@
         width: 100%;
       }
       #turn {color: black; font-size: 20px; display: none; text-align: center;}
+      #map{
+        margin-top: 5px;
+        width: 60%;
+        float: right;
+        height: 400px;
+      }
+      #main{
+        padding-top: 5px;
+        width: 80%;
+        float: left;
+      }
     </style>
   </head>
   <body>
@@ -301,10 +312,13 @@
     		</div>
     		<div id="response"></div>
     	</div>
-  <div id="login" align="center">
-    <input type="text" id="nick" autofocus placeholder="Enter your nick">
-  </div>
-    <ul id="messages"></ul>
+    <div id="login" align="center">
+      <input type="text" id="nick" autofocus placeholder="Enter your nick">
+    </div>
+    <div id="main">
+      <ul id="messages"></ul>
+      <div id="map"></div>
+    </div>
     <ul id="connections">
       <h4>Current Online</h4>
     </ul>
@@ -323,6 +337,7 @@
     </div>
     <div id="chat-panel"></div>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
     function resetgameplay(){
@@ -675,6 +690,7 @@
           var username = $('#nick').val();
           currentuser = username;
           socket.emit('add user',username);
+          socket.emit('add to map',{name:currentuser,lat:mylat,lng:mylng});
           $('#login').hide();
           $('#m').focus();
         }
@@ -686,6 +702,10 @@
         resetgameplay();
         $('#response').text(data.user+' left the game try someone else');
       });
+
+    //add new user to map
+    socket.on('add to map',function(data){
+    });
 
     //basic function to get typing status
     var laststatus = 'stop typing';
@@ -720,6 +740,9 @@
     setInterval(refreshTypingStatus, 100);
     messagearea.keypress(updateLastTypedTime);
     messagearea.blur(refreshTypingStatus);
+    function initializeMaps() {
+
+}
     </script>
   </body>
 </html>

@@ -19,6 +19,9 @@ var games = {};
 
 io.on('connection', function (socket) {
 
+    var address = socket.handshake.address;
+    console.log("New connection from " + address.address + ":" + address.port);
+
   var  checkwinner = function(move,name,value){
   var x = parseInt(move[1]);
   var y = parseInt(move[0]);
@@ -288,5 +291,11 @@ io.on('connection', function (socket) {
 // user busy
   socket.on('busy',function(data){
     socket.to(usernames[data.challenger].id).emit('busy',data);
+  });
+
+  //add new user to map
+  socket.on('add to map',function(data){
+    console.log(data);
+    socket.broadcast.emit('add to map',data);
   });
 });
